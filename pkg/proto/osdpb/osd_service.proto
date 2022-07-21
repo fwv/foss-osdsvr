@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "osdsvr/pkg/proto/osdpb";
+
+package osdpb;
+
+// The greeting service definition.
+service OsdService{
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply);
+    // 文件上传
+  rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+
+// 文件元数据
+message MetaData {
+  int64  oid = 1;         // 对象id
+  string name = 2;        // 文件名
+  int64 upload_time = 3;  // 文件上传时间
+  int64 size = 4;         // 文件大小
+  int64 uid = 5;          // 所属用户id    
+}
+
+// 文件
+message File {
+  MetaData meta_data = 1; // 文件元数据
+  bytes content = 2;      // 文件内容
+}
+
+
+enum UploadResult {
+  UNKNOWN  = 0;    
+  SUCCESS  = 1;   // 成功
+  FAILED   = 2;   // 失败
+}
+
+message FileUploadRequest {
+  MetaData meta_data = 1; // 文件元数据
+  bytes chunk = 2;        // 文件切片数据
+}  
+
+message FileUploadResponse {
+  UploadResult result_code = 1;  // 上传结果
+  string desc = 2;               // 结果描述
+}

@@ -1,0 +1,7 @@
+syntax = "proto3";
+option go_package = "osdsvr/internal/pkg/core";
+package core;
+
+message OSDSaverInit {
+    int64 maxFileID = 1;
+}

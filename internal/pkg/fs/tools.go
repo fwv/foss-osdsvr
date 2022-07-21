@@ -1,0 +1,25 @@
+package fs
+
+import (
+	"os"
+	"osdsvr/pkg/zlog"
+
+	"go.uber.org/zap"
+)
+
+// PathExists
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			zlog.Error("failed to make dir", zap.Error(err))
+		} else {
+			return true, nil
+		}
+	}
+	return false, err
+}
