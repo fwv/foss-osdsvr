@@ -1,5 +1,6 @@
 /bin/
 /deps/
+/testing/
 /test/stress/app/stress_client
 **/excel/
 # Created by https://www.gitignore.io/api/go,vim,macos,emacs,windows,visualstudio,jetbrains+all,visualstudiocode
