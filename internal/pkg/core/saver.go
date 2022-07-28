@@ -92,6 +92,7 @@ func (s *OSDSaver) SyncInitFile() error {
 }
 
 func (s *OSDSaver) Store(data []byte) (*Entry, error) {
+	// todo: sync need reconsider
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	// check if file is too big

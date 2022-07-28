@@ -10,7 +10,7 @@ import (
 )
 
 func TestSaver(t *testing.T) {
-	path := "/home/fwv/code/foss/osdsvr/testing/osd_file/"
+	path := "/home/fwv/code/foss-osdsvr/testing/osd_file/"
 	os.RemoveAll(path)
 	// test store
 	data := []byte("nihaonihao") // 10 byte
@@ -48,7 +48,7 @@ func TestSaver(t *testing.T) {
 }
 
 func TestInitializer(t *testing.T) {
-	path := "/home/fwv/code/foss/osdsvr/testing/osd_file/"
+	path := "/home/fwv/code/foss-osdsvr/testing/osd_file/"
 	os.RemoveAll(path)
 	// test store
 	data := []byte("nihaonihao") // 10 byte
@@ -78,7 +78,7 @@ func TestInitializer(t *testing.T) {
 // BenchmarkStore-12
 // 8673	    143049 ns/op
 func BenchmarkStore(b *testing.B) {
-	path := "/home/fwv/code/foss/osdsvr/testing/bench_store/"
+	path := "/home/fwv/code/foss-osdsvr/testing/bench_store/"
 	os.RemoveAll(path)
 	data10B := []byte("nihaonihao") // 10 byte
 	data64KB := make([]byte, 0)
