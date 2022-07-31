@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	objectDir = flag.String("objectDir", "/home/fwv/oss/", "object directory")
+	objectDir         = flag.String("objectDir", "/home/fwv/oss/", "object directory")
+	downloadChunkSize = flag.Int("downloadChunkSize", 1024*64, "download chunk size")
 )
 
 // SayHello implements helloworld.GreeterServer
@@ -24,18 +25,14 @@ func (s *OsdServer) SayHello(ctx context.Context, in *osdpb.HelloRequest) (*osdp
 }
 
 func (s *OsdServer) UploadFile(stream osdpb.OsdService_UploadFileServer) error {
-	filedata := make([]byte, 0)
-	// receivedSize := 0
 	writeoff := 0
+	fullFileName := ""
 	for {
 		req, err := stream.Recv()
 		// handle EOF
 		if err == io.EOF {
 			// todo
-			if len(filedata) != 0 {
-				content := string(filedata)
-				zlog.Info("accept file content", zap.String("content", content))
-			}
+			zlog.Info("accept file completed", zap.String("object save path", fullFileName), zap.Int("content size", writeoff))
 			return stream.SendAndClose(&osdpb.FileUploadResponse{
 				ResultCode: osdpb.Result_SUCCESS,
 				Desc:       "upload file sucessfully",
@@ -53,28 +50,26 @@ func (s *OsdServer) UploadFile(stream osdpb.OsdService_UploadFileServer) error {
 		fileName := ""
 		// handle metadata
 		if req.MetaData != nil {
-			// todo
-			zlog.Info("file metadata detected.")
 			fileName = req.MetaData.Name
 		}
 		var file *os.File
 		if file == nil {
-			fullFileName := strings.Join([]string{*objectDir, fileName}, "")
+			fullFileName = strings.Join([]string{*objectDir, fileName}, "")
 			file, err = os.OpenFile(fullFileName, os.O_CREATE|os.O_RDWR, 0666)
 			if err != nil {
 				return err
 			}
+			defer file.Close()
 		}
 		n, err := file.WriteAt(req.Chunk, int64(writeoff))
 		if err != nil {
 			return err
 		}
+		zlog.Debug("write chunk data to file completed", zap.Int("chunk size", n))
 		writeoff += n
 		if err := file.Sync(); err != nil {
 			return err
 		}
-		// handle chunk data
-		filedata = append(filedata, req.GetChunk()...)
 	}
 }
 
@@ -88,24 +83,28 @@ func (s *OsdServer) DownloadFile(in *osdpb.FileDownloadRequest, stream osdpb.Osd
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	readoff := 0
-	data := make([]byte, 1024)
+	data := make([]byte, *downloadChunkSize)
 	for {
 		n, err := file.ReadAt(data, int64(readoff))
 		readoff += n
-		if err != nil {
-			if err == io.EOF {
-				stream.Send(&osdpb.FileDownloadResponse{
-					ResultCode: osdpb.Result_SUCCESS,
-					Desc:       "",
-				})
-				// todo handle eof
-				zlog.Info("read file finish")
+		if n != 0 {
+			zlog.Debug("send chunk data to stream", zap.Int("chunk size", n))
+			if err := stream.Send(&osdpb.FileDownloadResponse{
+				Chunk: data[:n],
+			}); err != nil {
+				zlog.Error("failed to send chunk data to stream", zap.Error(err))
+				return err
 			}
+		}
+		if err == io.EOF {
+			zlog.Info("send file data to stream completed", zap.String("object name", objectName), zap.Int("total size", readoff))
+			break
+		} else if err != nil {
+			zlog.Error("failed to read file", zap.Error(err))
 			return err
 		}
-		stream.Send(&osdpb.FileDownloadResponse{
-			Chunk: data[:n],
-		})
 	}
+	return nil
 }
