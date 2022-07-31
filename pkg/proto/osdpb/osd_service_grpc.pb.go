@@ -26,6 +26,8 @@ type OsdServiceClient interface {
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	// 文件上传
 	UploadFile(ctx context.Context, opts ...grpc.CallOption) (OsdService_UploadFileClient, error)
+	// 文件下载
+	DownloadFile(ctx context.Context, in *FileDownloadRequest, opts ...grpc.CallOption) (OsdService_DownloadFileClient, error)
 }
 
 type osdServiceClient struct {
@@ -79,6 +81,38 @@ func (x *osdServiceUploadFileClient) CloseAndRecv() (*FileUploadResponse, error)
 	return m, nil
 }
 
+func (c *osdServiceClient) DownloadFile(ctx context.Context, in *FileDownloadRequest, opts ...grpc.CallOption) (OsdService_DownloadFileClient, error) {
+	stream, err := c.cc.NewStream(ctx, &OsdService_ServiceDesc.Streams[1], "/osdpb.OsdService/DownloadFile", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &osdServiceDownloadFileClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type OsdService_DownloadFileClient interface {
+	Recv() (*FileDownloadResponse, error)
+	grpc.ClientStream
+}
+
+type osdServiceDownloadFileClient struct {
+	grpc.ClientStream
+}
+
+func (x *osdServiceDownloadFileClient) Recv() (*FileDownloadResponse, error) {
+	m := new(FileDownloadResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // OsdServiceServer is the server API for OsdService service.
 // All implementations must embed UnimplementedOsdServiceServer
 // for forward compatibility
@@ -87,6 +121,8 @@ type OsdServiceServer interface {
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 	// 文件上传
 	UploadFile(OsdService_UploadFileServer) error
+	// 文件下载
+	DownloadFile(*FileDownloadRequest, OsdService_DownloadFileServer) error
 	mustEmbedUnimplementedOsdServiceServer()
 }
 
@@ -99,6 +135,9 @@ func (UnimplementedOsdServiceServer) SayHello(context.Context, *HelloRequest) (*
 }
 func (UnimplementedOsdServiceServer) UploadFile(OsdService_UploadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
+}
+func (UnimplementedOsdServiceServer) DownloadFile(*FileDownloadRequest, OsdService_DownloadFileServer) error {
+	return status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
 }
 func (UnimplementedOsdServiceServer) mustEmbedUnimplementedOsdServiceServer() {}
 
@@ -157,6 +196,27 @@ func (x *osdServiceUploadFileServer) Recv() (*FileUploadRequest, error) {
 	return m, nil
 }
 
+func _OsdService_DownloadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(FileDownloadRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(OsdServiceServer).DownloadFile(m, &osdServiceDownloadFileServer{stream})
+}
+
+type OsdService_DownloadFileServer interface {
+	Send(*FileDownloadResponse) error
+	grpc.ServerStream
+}
+
+type osdServiceDownloadFileServer struct {
+	grpc.ServerStream
+}
+
+func (x *osdServiceDownloadFileServer) Send(m *FileDownloadResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // OsdService_ServiceDesc is the grpc.ServiceDesc for OsdService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -174,6 +234,11 @@ var OsdService_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "UploadFile",
 			Handler:       _OsdService_UploadFile_Handler,
 			ClientStreams: true,
+		},
+		{
+			StreamName:    "DownloadFile",
+			Handler:       _OsdService_DownloadFile_Handler,
+			ServerStreams: true,
 		},
 	},
 	Metadata: "pkg/proto/osdpb/osd_service.proto",

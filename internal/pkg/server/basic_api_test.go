@@ -50,6 +50,20 @@ func BenchmarkUploadFile(b *testing.B) {
 	}
 }
 
+func TestUploadFile(t *testing.T) {
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(*osdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := osdpb.NewOsdServiceClient(conn)
+
+	str := "hello,1231231231231231231231231231231231123123123"
+	data := []byte(str)
+	UploadFile(context.Background(), c, data)
+}
+
 func UploadFile(ctx context.Context, c osdpb.OsdServiceClient, data []byte) error {
 	maxLen := len(data)
 	maxChunkSize := 1024

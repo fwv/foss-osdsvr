@@ -8,8 +8,10 @@ package osdpb;
 service OsdService{
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply);
-    // 文件上传
+  // 文件上传
   rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
+  // 文件下载
+  rpc DownloadFile (FileDownloadRequest) returns (stream FileDownloadResponse);
 }
 
 // The request message containing the user's name.
@@ -37,8 +39,7 @@ message File {
   bytes content = 2;      // 文件内容
 }
 
-
-enum UploadResult {
+enum Result {
   UNKNOWN  = 0;    
   SUCCESS  = 1;   // 成功
   FAILED   = 2;   // 失败
@@ -50,6 +51,16 @@ message FileUploadRequest {
 }  
 
 message FileUploadResponse {
-  UploadResult result_code = 1;  // 上传结果
+  Result result_code = 1;  // 上传结果
   string desc = 2;               // 结果描述
+}
+
+message FileDownloadRequest {
+  MetaData meta_data = 1;       // 文件元数据
+}  
+
+message FileDownloadResponse {
+  Result result_code = 1;  // 上传结果
+  string desc = 2;               // 结果描述
+  bytes chunk = 3;               // 文件切片数据
 }

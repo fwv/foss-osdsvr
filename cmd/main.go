@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	addr = flag.String("addr", ":50051", "grpc server listen address")
+	addr = flag.String("addr", ":5000", "grpc server listen address")
 )
 
 func main() {
