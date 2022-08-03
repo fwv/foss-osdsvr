@@ -3,9 +3,10 @@ package server
 import (
 	"context"
 	"errors"
-	"flag"
 	"io"
 	"os"
+	"osdsvr/internal/pkg/config"
+	"osdsvr/internal/pkg/core"
 	"osdsvr/pkg/proto/osdpb"
 	"osdsvr/pkg/zlog"
 	"strings"
@@ -14,8 +15,7 @@ import (
 )
 
 var (
-	objectDir         = flag.String("objectDir", "/home/fwv/oss/", "object directory")
-	downloadChunkSize = flag.Int("downloadChunkSize", 1024*64, "download chunk size")
+	ErrInvalidMetaData = errors.New("request metadata is invalid, please check if parameter is right")
 )
 
 // SayHello implements helloworld.GreeterServer
@@ -25,52 +25,53 @@ func (s *OsdServer) SayHello(ctx context.Context, in *osdpb.HelloRequest) (*osdp
 }
 
 func (s *OsdServer) UploadFile(stream osdpb.OsdService_UploadFileServer) error {
-	writeoff := 0
-	fullFileName := ""
-	for {
-		req, err := stream.Recv()
-		// handle EOF
-		if err == io.EOF {
-			// todo
-			zlog.Info("accept file completed", zap.String("object save path", fullFileName), zap.Int("content size", writeoff))
-			return stream.SendAndClose(&osdpb.FileUploadResponse{
-				ResultCode: osdpb.Result_SUCCESS,
-				Desc:       "upload file sucessfully",
-			})
-		}
-
-		// handle error
-		if err != nil {
-			zlog.Error("failed to receive chunk", zap.Error(err))
-			return stream.SendAndClose(&osdpb.FileUploadResponse{
-				ResultCode: osdpb.Result_FAILED,
-				Desc:       "receive chunk failed",
-			})
-		}
-		fileName := ""
-		// handle metadata
-		if req.MetaData != nil {
-			fileName = req.MetaData.Name
-		}
-		var file *os.File
-		if file == nil {
-			fullFileName = strings.Join([]string{*objectDir, fileName}, "")
-			file, err = os.OpenFile(fullFileName, os.O_CREATE|os.O_RDWR, 0666)
+	// handle metadata
+	req, _ := stream.Recv()
+	fileName := ""
+	bucketID := ""
+	if req.MetaData != nil {
+		fileName = req.MetaData.Name
+		bucketID = req.MetaData.BucketId
+	}
+	tmpPath := s.oService.GetObjectTmpPath(fileName)
+	done := make(chan bool)
+	task := &core.Task{
+		DoTask: func(v ...any) error {
+			path := v[0].(string)
+			bucketId := v[1].(string)
+			st := v[2].(osdpb.OsdService_UploadFileServer)
+			ch := v[3].(chan bool)
+			if path == "" || bucketId == "" {
+				ch <- true
+				return ErrInvalidMetaData
+			}
+			// write tmp object
+			hash, err := s.oService.WriteObject(path, st)
 			if err != nil {
+				ch <- true
 				return err
 			}
-			defer file.Close()
-		}
-		n, err := file.WriteAt(req.Chunk, int64(writeoff))
-		if err != nil {
-			return err
-		}
-		zlog.Debug("write chunk data to file completed", zap.Int("chunk size", n))
-		writeoff += n
-		if err := file.Sync(); err != nil {
-			return err
-		}
+			// object check
+			if err := s.oService.CheckObject(); err != nil {
+				ch <- true
+				return err
+			}
+			// object rename
+			newp := s.oService.GetObjectPath(bucketId, hash)
+			err = s.oService.RenameObject(path, newp)
+			if err != nil {
+				ch <- true
+				return err
+			}
+			// modify metadata
+			ch <- true
+			return nil
+		},
+		Param: []any{tmpPath, bucketID, stream, done},
 	}
+	s.scheduler.AddTask(task)
+	<-done
+	return nil
 }
 
 func (s *OsdServer) DownloadFile(in *osdpb.FileDownloadRequest, stream osdpb.OsdService_DownloadFileServer) error {
@@ -78,14 +79,14 @@ func (s *OsdServer) DownloadFile(in *osdpb.FileDownloadRequest, stream osdpb.Osd
 		return errors.New("metadata is nil")
 	}
 	objectName := in.MetaData.Name
-	fullObjectPath := strings.Join([]string{*objectDir, objectName}, "")
+	fullObjectPath := strings.Join([]string{*config.STORAGE_PATH, objectName}, "")
 	file, err := os.OpenFile(fullObjectPath, os.O_RDONLY, 0666)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 	readoff := 0
-	data := make([]byte, *downloadChunkSize)
+	data := make([]byte, *config.DOWNLOAD_CHUNK_SIZE)
 	for {
 		n, err := file.ReadAt(data, int64(readoff))
 		readoff += n

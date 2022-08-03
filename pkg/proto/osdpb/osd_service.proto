@@ -30,7 +30,8 @@ message MetaData {
   string name = 2;        // 文件名
   int64 upload_time = 3;  // 文件上传时间
   int64 size = 4;         // 文件大小
-  int64 uid = 5;          // 所属用户id    
+  string open_id = 5;     // 所属用户id    
+  string bucket_id = 6;   // 桶id    
 }
 
 // 文件

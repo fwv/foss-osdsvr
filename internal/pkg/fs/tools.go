@@ -23,3 +23,20 @@ func PathExists(path string) (bool, error) {
 	}
 	return false, err
 }
+
+func CreatePathIfNotExists(path string) error {
+	_, err := os.Stat(path)
+	if err == nil {
+		return nil
+	}
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			zlog.Error("failed to make dir", zap.Error(err))
+			return err
+		} else {
+			return nil
+		}
+	}
+	return nil
+}
