@@ -12,7 +12,7 @@ type Initializer interface {
 }
 
 type OSDInitializer struct {
-	initFile     fs.File
+	initFile     *fs.FileIO
 	path         string
 	initFileName string
 }
@@ -23,7 +23,7 @@ func (t *OSDInitializer) LoadInitFile(path string, initFileName string) error {
 		return err
 	}
 	filePath := strings.Join([]string{path, initFileName}, "")
-	file, err := fs.NewOSDFile(filePath)
+	file, err := fs.NewFileIO(filePath)
 	if err != nil {
 		return err
 	}

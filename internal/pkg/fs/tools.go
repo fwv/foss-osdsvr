@@ -7,6 +7,14 @@ import (
 	"go.uber.org/zap"
 )
 
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		return os.IsExist(err)
+	}
+	return true
+}
+
 // PathExists
 func PathExists(path string) (bool, error) {
 	_, err := os.Stat(path)

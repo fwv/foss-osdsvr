@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "osdsvr/internal/pkg/metadata/metadata";
+
+package metadata;
+
+// 对象元数据
+message MetaData {
+    string name = 1;                        // 文件名
+    string bucket_id= 2;                    // 桶ID 
+    map<int64,VersionRecord> versions = 3;  // 版本记录
+    int64 latest_version = 4;               // 最新版本号
+}
+
+message VersionRecord {
+    int64 version = 1;      // 版本号
+    string hash = 2;        // 文件标识
+    int64 size = 3;         // 文件大小
+    int64 upload_time = 4;  // 上传时间
+}

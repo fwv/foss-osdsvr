@@ -4,6 +4,7 @@ import (
 	"net"
 	"osdsvr/internal/pkg/config"
 	"osdsvr/internal/pkg/core"
+	"osdsvr/internal/pkg/metadata"
 	"osdsvr/internal/pkg/object"
 	"osdsvr/pkg/proto/osdpb"
 	"osdsvr/pkg/zlog"
@@ -16,6 +17,7 @@ type OsdServer struct {
 	osdpb.UnimplementedOsdServiceServer
 	scheduler *core.Scheduler
 	oService  *object.Service
+	mService  *metadata.Service
 }
 
 func NewOsdServer() *OsdServer {

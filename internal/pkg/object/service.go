@@ -29,7 +29,6 @@ func (s *Service) WriteObject(objPath string, stream osdpb.OsdService_UploadFile
 		req, err := stream.Recv()
 		// handle EOF
 		if err == io.EOF {
-			// todo
 			hash := base64.StdEncoding.EncodeToString(sha.Sum(nil))
 			zlog.Info("accept file completed", zap.String("object save path", objPath), zap.Int("content size", writeoff))
 			return hash, stream.SendAndClose(&osdpb.FileUploadResponse{
@@ -57,7 +56,7 @@ func (s *Service) WriteObject(objPath string, stream osdpb.OsdService_UploadFile
 		if err != nil {
 			return "", err
 		}
-		zlog.Debug("write chunk data to file completed", zap.Int("chunk size", n))
+		// zlog.Debug("write chunk data to file completed", zap.Int("chunk size", n))
 
 		if _, err := sha.Write(req.Chunk); err != nil {
 			zlog.Error("failed to calculate hash sha256")
@@ -70,11 +69,45 @@ func (s *Service) WriteObject(objPath string, stream osdpb.OsdService_UploadFile
 	}
 }
 
+func (s *Service) GetObject(hash string, bucketID string, stream osdpb.OsdService_DownloadFileServer) error {
+	// read data
+	objectPath := s.GetObjectPath(hash, bucketID)
+	file, err := os.OpenFile(objectPath, os.O_RDONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	readoff := 0
+	data := make([]byte, *config.DOWNLOAD_CHUNK_SIZE)
+	for {
+		n, err := file.ReadAt(data, int64(readoff))
+		readoff += n
+		if n != 0 {
+			zlog.Debug("send chunk data to stream", zap.Int("chunk size", n))
+			if err := stream.Send(&osdpb.FileDownloadResponse{
+				Chunk: data[:n],
+			}); err != nil {
+				zlog.Error("failed to send chunk data to stream", zap.Error(err))
+				return err
+			}
+		}
+		if err == io.EOF {
+			zlog.Info("send file data to stream completed", zap.String("object name", hash), zap.Int("total size", readoff))
+			break
+		} else if err != nil {
+			zlog.Error("failed to read file", zap.Error(err))
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *Service) RenameObject(oldObjPath, newObjPath string) error {
 	if err := os.Rename(oldObjPath, newObjPath); err != nil {
 		zlog.Error("failed to rename object", zap.Error(err))
 		return err
 	}
+	zlog.Debug("rename object sucessfully", zap.Any("tmp object", oldObjPath), zap.Any("new object", newObjPath))
 	return nil
 }
 

@@ -22,8 +22,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OsdServiceClient interface {
-	// Sends a greeting
-	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	// 文件上传
 	UploadFile(ctx context.Context, opts ...grpc.CallOption) (OsdService_UploadFileClient, error)
 	// 文件下载
@@ -36,15 +34,6 @@ type osdServiceClient struct {
 
 func NewOsdServiceClient(cc grpc.ClientConnInterface) OsdServiceClient {
 	return &osdServiceClient{cc}
-}
-
-func (c *osdServiceClient) SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error) {
-	out := new(HelloReply)
-	err := c.cc.Invoke(ctx, "/osdpb.OsdService/SayHello", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *osdServiceClient) UploadFile(ctx context.Context, opts ...grpc.CallOption) (OsdService_UploadFileClient, error) {
@@ -117,8 +106,6 @@ func (x *osdServiceDownloadFileClient) Recv() (*FileDownloadResponse, error) {
 // All implementations must embed UnimplementedOsdServiceServer
 // for forward compatibility
 type OsdServiceServer interface {
-	// Sends a greeting
-	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 	// 文件上传
 	UploadFile(OsdService_UploadFileServer) error
 	// 文件下载
@@ -130,9 +117,6 @@ type OsdServiceServer interface {
 type UnimplementedOsdServiceServer struct {
 }
 
-func (UnimplementedOsdServiceServer) SayHello(context.Context, *HelloRequest) (*HelloReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
-}
 func (UnimplementedOsdServiceServer) UploadFile(OsdService_UploadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadFile not implemented")
 }
@@ -150,24 +134,6 @@ type UnsafeOsdServiceServer interface {
 
 func RegisterOsdServiceServer(s grpc.ServiceRegistrar, srv OsdServiceServer) {
 	s.RegisterService(&OsdService_ServiceDesc, srv)
-}
-
-func _OsdService_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OsdServiceServer).SayHello(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/osdpb.OsdService/SayHello",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OsdServiceServer).SayHello(ctx, req.(*HelloRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _OsdService_UploadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -223,12 +189,7 @@ func (x *osdServiceDownloadFileServer) Send(m *FileDownloadResponse) error {
 var OsdService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "osdpb.OsdService",
 	HandlerType: (*OsdServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "SayHello",
-			Handler:    _OsdService_SayHello_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "UploadFile",

@@ -9,7 +9,7 @@ type FileIO struct {
 	fd *os.File
 }
 
-func NewFileIO(path string, capacity int64) (*FileIO, error) {
+func NewFileIO(path string) (*FileIO, error) {
 	fd, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return nil, err

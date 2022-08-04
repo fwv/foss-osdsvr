@@ -17,23 +17,6 @@ var (
 	osdAddr = flag.String("osdAddr", ":50051", "osd serivce address")
 )
 
-func BenchmarkSayHello(b *testing.B) {
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(*osdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := osdpb.NewOsdServiceClient(conn)
-
-	str := "fengwei"
-	for i := 0; i < b.N; i++ {
-		c.SayHello(context.Background(), &osdpb.HelloRequest{
-			Name: str,
-		})
-	}
-}
-
 func BenchmarkUploadFile(b *testing.B) {
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*osdAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
