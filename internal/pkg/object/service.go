@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"io"
+	"net/url"
 	"os"
 	"osdsvr/internal/pkg/config"
 	"osdsvr/internal/pkg/fs"
@@ -30,7 +31,8 @@ func (s *Service) WriteObject(objPath string, stream osdpb.OsdService_UploadFile
 		// handle EOF
 		if err == io.EOF {
 			hash := base64.StdEncoding.EncodeToString(sha.Sum(nil))
-			zlog.Info("accept file completed", zap.String("object save path", objPath), zap.Int("content size", writeoff))
+			hash = url.PathEscape(hash)
+			// zlog.Debug("accept file completed", zap.String("object save path", objPath), zap.Int("content size", writeoff))
 			return hash, stream.SendAndClose(&osdpb.FileUploadResponse{
 				ResultCode: osdpb.Result_SUCCESS,
 				Desc:       "upload file sucessfully",
@@ -71,7 +73,7 @@ func (s *Service) WriteObject(objPath string, stream osdpb.OsdService_UploadFile
 
 func (s *Service) GetObject(hash string, bucketID string, stream osdpb.OsdService_DownloadFileServer) error {
 	// read data
-	objectPath := s.GetObjectPath(hash, bucketID)
+	objectPath := s.GetObjectPath(bucketID, hash)
 	file, err := os.OpenFile(objectPath, os.O_RDONLY, 0666)
 	if err != nil {
 		return err
@@ -107,7 +109,7 @@ func (s *Service) RenameObject(oldObjPath, newObjPath string) error {
 		zlog.Error("failed to rename object", zap.Error(err))
 		return err
 	}
-	zlog.Debug("rename object sucessfully", zap.Any("tmp object", oldObjPath), zap.Any("new object", newObjPath))
+	// zlog.Debug("rename object sucessfully", zap.Any("tmp object", oldObjPath), zap.Any("new object", newObjPath))
 	return nil
 }
 

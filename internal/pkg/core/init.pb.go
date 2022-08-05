@@ -20,16 +20,16 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type OSDSaverInit struct {
+type OSDServerInit struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MaxFileID int64 `protobuf:"varint,1,opt,name=maxFileID,proto3" json:"maxFileID,omitempty"`
+	ID int64 `protobuf:"varint,1,opt,name=ID,proto3" json:"ID,omitempty"`
 }
 
-func (x *OSDSaverInit) Reset() {
-	*x = OSDSaverInit{}
+func (x *OSDServerInit) Reset() {
+	*x = OSDServerInit{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_internal_pkg_core_init_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -37,13 +37,13 @@ func (x *OSDSaverInit) Reset() {
 	}
 }
 
-func (x *OSDSaverInit) String() string {
+func (x *OSDServerInit) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OSDSaverInit) ProtoMessage() {}
+func (*OSDServerInit) ProtoMessage() {}
 
-func (x *OSDSaverInit) ProtoReflect() protoreflect.Message {
+func (x *OSDServerInit) ProtoReflect() protoreflect.Message {
 	mi := &file_internal_pkg_core_init_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,14 +55,14 @@ func (x *OSDSaverInit) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OSDSaverInit.ProtoReflect.Descriptor instead.
-func (*OSDSaverInit) Descriptor() ([]byte, []int) {
+// Deprecated: Use OSDServerInit.ProtoReflect.Descriptor instead.
+func (*OSDServerInit) Descriptor() ([]byte, []int) {
 	return file_internal_pkg_core_init_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *OSDSaverInit) GetMaxFileID() int64 {
+func (x *OSDServerInit) GetID() int64 {
 	if x != nil {
-		return x.MaxFileID
+		return x.ID
 	}
 	return 0
 }
@@ -72,12 +72,11 @@ var File_internal_pkg_core_init_proto protoreflect.FileDescriptor
 var file_internal_pkg_core_init_proto_rawDesc = []byte{
 	0x0a, 0x1c, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63,
 	0x6f, 0x72, 0x65, 0x2f, 0x69, 0x6e, 0x69, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04,
-	0x63, 0x6f, 0x72, 0x65, 0x22, 0x2c, 0x0a, 0x0c, 0x4f, 0x53, 0x44, 0x53, 0x61, 0x76, 0x65, 0x72,
-	0x49, 0x6e, 0x69, 0x74, 0x12, 0x1c, 0x0a, 0x09, 0x6d, 0x61, 0x78, 0x46, 0x69, 0x6c, 0x65, 0x49,
-	0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x6d, 0x61, 0x78, 0x46, 0x69, 0x6c, 0x65,
-	0x49, 0x44, 0x42, 0x1a, 0x5a, 0x18, 0x6f, 0x73, 0x64, 0x73, 0x76, 0x72, 0x2f, 0x69, 0x6e, 0x74,
-	0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63, 0x6f, 0x72, 0x65, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x63, 0x6f, 0x72, 0x65, 0x22, 0x1f, 0x0a, 0x0d, 0x4f, 0x53, 0x44, 0x53, 0x65, 0x72, 0x76, 0x65,
+	0x72, 0x49, 0x6e, 0x69, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x02, 0x49, 0x44, 0x42, 0x1a, 0x5a, 0x18, 0x6f, 0x73, 0x64, 0x73, 0x76, 0x72, 0x2f,
+	0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63, 0x6f, 0x72,
+	0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -94,7 +93,7 @@ func file_internal_pkg_core_init_proto_rawDescGZIP() []byte {
 
 var file_internal_pkg_core_init_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_internal_pkg_core_init_proto_goTypes = []interface{}{
-	(*OSDSaverInit)(nil), // 0: core.OSDSaverInit
+	(*OSDServerInit)(nil), // 0: core.OSDServerInit
 }
 var file_internal_pkg_core_init_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -111,7 +110,7 @@ func file_internal_pkg_core_init_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_internal_pkg_core_init_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*OSDSaverInit); i {
+			switch v := v.(*OSDServerInit); i {
 			case 0:
 				return &v.state
 			case 1:

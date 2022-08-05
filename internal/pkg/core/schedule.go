@@ -63,6 +63,7 @@ func (s *Scheduler) LaunchWorker() error {
 	go func() {
 		defer s.decRunningWorkerNum()
 		for {
+			zlog.Debug("task queue", zap.Any("size", s.getTaskNum()))
 			select {
 			case task, ok := <-s.taskCh:
 				if !ok {

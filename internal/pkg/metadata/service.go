@@ -59,6 +59,7 @@ func (s *Service) AddVerisonRecord(bucketID string, objectName string, record *V
 			meta.Versions = make(map[int64]*VersionRecord)
 		}
 		record.Version = latestVersion + 1
+		meta.LatestVersion = latestVersion + 1
 		meta.Versions[record.Version] = record
 	} else {
 		meta = &MetaData{
@@ -84,6 +85,8 @@ func (s *Service) GetVerisonRecord(bucketID string, objectName string, version i
 	if meta != nil {
 		if version == 0 && meta.LatestVersion != 0 {
 			v = meta.LatestVersion
+		} else {
+			v = version
 		}
 		if meta.Versions != nil {
 			return meta.Versions[v], nil

@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrInvalidMetaData = errors.New("request metadata is invalid, please check if parameter is right")
+	ErrInvalidMetaData       = errors.New("request metadata is invalid, please check if parameter is right")
+	ErrVerisonRecordNotFound = errors.New("version record is not find")
 )
 
 func (s *OsdServer) UploadFile(stream osdpb.OsdService_UploadFileServer) error {
@@ -69,6 +70,9 @@ func (s *OsdServer) UploadFile(stream osdpb.OsdService_UploadFileServer) error {
 		Param: []any{tmpPath, bucketID, stream, done, fileName},
 	}
 	s.scheduler.AddTask(task)
+	// if task != nil {
+	// 	done <- true
+	// }
 	<-done
 	return nil
 }
@@ -90,6 +94,9 @@ func (s *OsdServer) DownloadFile(req *osdpb.FileDownloadRequest, stream osdpb.Os
 	record, err := s.mService.GetVerisonRecord(bucketID, objectName, version)
 	if err != nil {
 		return err
+	}
+	if record == nil {
+		return ErrVerisonRecordNotFound
 	}
 	hash := record.Hash
 	// read object
