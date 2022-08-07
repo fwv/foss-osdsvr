@@ -16,8 +16,8 @@ var (
 )
 
 type Task struct {
-	DoTask func(v ...any) error
-	Param  []any
+	DoTask func(v ...interface{}) error
+	Param  []interface{}
 }
 
 type Scheduler struct {

@@ -10,6 +10,7 @@ import (
 	"osdsvr/internal/pkg/core"
 	"osdsvr/internal/pkg/metadata"
 	"osdsvr/internal/pkg/object"
+	"osdsvr/internal/pkg/rs"
 	"osdsvr/internal/ssclient"
 	"osdsvr/pkg/proto/osdpb"
 	"osdsvr/pkg/zlog"
@@ -28,6 +29,7 @@ type OsdServer struct {
 	scheduler  *core.Scheduler
 	oService   *object.Service
 	mService   *metadata.Service
+	rsService  *rs.Service
 	LinkClient *ssclient.LinkSerivce
 }
 
@@ -36,6 +38,8 @@ func NewOsdServer() *OsdServer {
 		OSDID:     *config.OSD_NO,
 		scheduler: core.NewScheduler(*config.SCHEDULE_CAPACITY),
 		oService:  object.NewService(),
+		mService:  metadata.NewService(),
+		rsService: rs.NewService(),
 	}
 	return s
 }

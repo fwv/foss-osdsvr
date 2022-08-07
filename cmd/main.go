@@ -7,6 +7,7 @@ import (
 	"osdsvr/internal/pkg/server"
 	"osdsvr/internal/ssclient"
 	"osdsvr/pkg/zlog"
+	"runtime"
 
 	"github.com/foss/linksvr/pkg/proto/linkpb"
 	"go.uber.org/zap"
@@ -24,7 +25,7 @@ func main() {
 	if err := osdServer.LoadInitFile(*config.STORAGE_PATH, *config.OSD_INIT_FILE); err != nil {
 		zlog.Error("faile to load init file", zap.Error(err))
 	}
-
+	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
 	// register to linksvr
 	var conn *grpc.ClientConn
 	var err error

@@ -10,6 +10,8 @@ service OsdService{
   rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
   // 文件下载
   rpc DownloadFile (FileDownloadRequest) returns (stream FileDownloadResponse);
+  // 文件版本信息查询
+  rpc QueryObjectVersionRecords(QueryObjectVersionRecordsRequest) returns (QueryObjectVersionRecordsResponse);
 }
 
 // The request message containing the user's name.
@@ -63,4 +65,14 @@ message FileDownloadResponse {
   Result result_code = 1;  // 上传结果
   string desc = 2;               // 结果描述
   bytes chunk = 3;               // 文件切片数据
+}
+
+message QueryObjectVersionRecordsRequest {
+  string bucket_id = 1;   // 桶id
+  string object_name = 2;  // 对象名
+}  
+
+message QueryObjectVersionRecordsResponse {
+  Result result_code = 1;  // 上传结果
+  string desc = 2;         // 结果描述
 }

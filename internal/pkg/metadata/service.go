@@ -24,6 +24,17 @@ func (s *Service) IfMetadataExist(bucketID string, objectName string) bool {
 	return fs.Exists(path)
 }
 
+func (s *Service) GetAllVersionRecords(bucketID string, objectName string) (map[int64]*VersionRecord, error) {
+	meta, err := s.GetMetadata(bucketID, objectName)
+	if err != nil {
+		return nil, err
+	}
+	if meta == nil || meta.Versions == nil {
+		return nil, nil
+	}
+	return meta.Versions, nil
+}
+
 func (s *Service) GetMetadata(bucketID string, objectName string) (*MetaData, error) {
 	dir := strings.Join([]string{*config.STORAGE_PATH, bucketID, "/metadata/"}, "")
 	fullpath := strings.Join([]string{dir, objectName, metadataPostfix}, "")

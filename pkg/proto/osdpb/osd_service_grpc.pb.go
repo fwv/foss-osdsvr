@@ -26,6 +26,8 @@ type OsdServiceClient interface {
 	UploadFile(ctx context.Context, opts ...grpc.CallOption) (OsdService_UploadFileClient, error)
 	// 文件下载
 	DownloadFile(ctx context.Context, in *FileDownloadRequest, opts ...grpc.CallOption) (OsdService_DownloadFileClient, error)
+	// 文件版本信息查询
+	QueryObjectVersionRecords(ctx context.Context, in *QueryObjectVersionRecordsRequest, opts ...grpc.CallOption) (*QueryObjectVersionRecordsResponse, error)
 }
 
 type osdServiceClient struct {
@@ -102,6 +104,15 @@ func (x *osdServiceDownloadFileClient) Recv() (*FileDownloadResponse, error) {
 	return m, nil
 }
 
+func (c *osdServiceClient) QueryObjectVersionRecords(ctx context.Context, in *QueryObjectVersionRecordsRequest, opts ...grpc.CallOption) (*QueryObjectVersionRecordsResponse, error) {
+	out := new(QueryObjectVersionRecordsResponse)
+	err := c.cc.Invoke(ctx, "/osdpb.OsdService/QueryObjectVersionRecords", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OsdServiceServer is the server API for OsdService service.
 // All implementations must embed UnimplementedOsdServiceServer
 // for forward compatibility
@@ -110,6 +121,8 @@ type OsdServiceServer interface {
 	UploadFile(OsdService_UploadFileServer) error
 	// 文件下载
 	DownloadFile(*FileDownloadRequest, OsdService_DownloadFileServer) error
+	// 文件版本信息查询
+	QueryObjectVersionRecords(context.Context, *QueryObjectVersionRecordsRequest) (*QueryObjectVersionRecordsResponse, error)
 	mustEmbedUnimplementedOsdServiceServer()
 }
 
@@ -122,6 +135,9 @@ func (UnimplementedOsdServiceServer) UploadFile(OsdService_UploadFileServer) err
 }
 func (UnimplementedOsdServiceServer) DownloadFile(*FileDownloadRequest, OsdService_DownloadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
+}
+func (UnimplementedOsdServiceServer) QueryObjectVersionRecords(context.Context, *QueryObjectVersionRecordsRequest) (*QueryObjectVersionRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryObjectVersionRecords not implemented")
 }
 func (UnimplementedOsdServiceServer) mustEmbedUnimplementedOsdServiceServer() {}
 
@@ -183,13 +199,36 @@ func (x *osdServiceDownloadFileServer) Send(m *FileDownloadResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _OsdService_QueryObjectVersionRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryObjectVersionRecordsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OsdServiceServer).QueryObjectVersionRecords(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/osdpb.OsdService/QueryObjectVersionRecords",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OsdServiceServer).QueryObjectVersionRecords(ctx, req.(*QueryObjectVersionRecordsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OsdService_ServiceDesc is the grpc.ServiceDesc for OsdService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var OsdService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "osdpb.OsdService",
 	HandlerType: (*OsdServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "QueryObjectVersionRecords",
+			Handler:    _OsdService_QueryObjectVersionRecords_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "UploadFile",
